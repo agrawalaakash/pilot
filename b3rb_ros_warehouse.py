@@ -249,8 +249,7 @@ class WarehouseExplore(Node):
         self.prev_sit = [0.0, 0.0]
         self.halt_counter = 0
         self.last_moved_time = self.get_clock().now().nanoseconds
-        self.filename = "mappp.txt"
-        self.initial_list = []
+        self.robot_initial_angle = None
 
 
     def pose_callback(self, message):
@@ -266,6 +265,14 @@ class WarehouseExplore(Node):
         self.buggy_pose_x = message.pose.pose.position.x
         self.buggy_pose_y = message.pose.pose.position.y
         self.buggy_center = (self.buggy_pose_x, self.buggy_pose_y)
+        if self.robot_initial_angle is None:
+            quat = message.pose.pose.orientation
+            siny_cosp = 2 * (quat.w * quat.z + quat.x * quat.y)
+            cosy_cosp = 1 - 2 * (quat.y * quat.y + quat.z * quat.z)
+            yaw = math.atan2(siny_cosp, cosy_cosp)
+            self.robot_initial_angle = yaw
+            angle = str(math.degrees(self.robot_initial_angle))
+            self.logger.info("Robot's initial angle in degrees = " + angle)
 
     def simple_map_callback(self, message):
         """Callback function to handle simple map updates.
@@ -451,30 +458,6 @@ class WarehouseExplore(Node):
                     elif img[self.node_y][self.node_x] == 0 :# explored no obstacles
 
                         self.logger.info(f"free region {img[self.node_y][self.node_x]}")
-                        # goal = self.create_goal_from_map_coord(self.node_x,self.node_y, map_info)
-                        # self.send_goal_from_world_pose(goal)
-
-                    # elif img[self.node_y][self.node_x] == 1: #unexplored
-                    #     self.logger.info("obstacle region ")
-                    #     if img[self.node_y+5][self.node_x] == 0:
-                    #         goal = self.create_goal_from_map_coord(self.node_x,self.node_y+5, map_info)
-                    #         self.send_goal_from_world_pose(goal)
-
-                    #     elif img[self.node_y-5][self.node_x] == 0:
-                    #         goal = self.create_goal_from_map_coord(self.node_x,self.node_y-5, map_info)
-                    #         self.send_goal_from_world_pose(goal)
-
-                    #     elif img[self.node_y][self.node_x+5] == 0:
-                    #         goal = self.create_goal_from_map_coord(self.node_x+5,self.node_y, map_info)
-                    #         self.send_goal_from_world_pose(goal)
-
-                    #     elif img[self.node_y][self.node_x-5] == 0:
-                    #         goal = self.create_goal_from_map_coord(self.node_x-5,self.node_y, map_info)
-                    #         self.send_goal_from_world_pose(goal)
-
-
-                        
-                        
 
                         
 
@@ -501,40 +484,6 @@ class WarehouseExplore(Node):
                         self.logger.info("reducing dist")
                         dist-=2
 
-                
-                        
-
-                            
-                
-            #     fx_world, fy_world = self.get_world_coord_from_map_coord(fx, fy,
-            #                                  map_info)
-            #     distance = euclidean((fx_world, fy_world), self.buggy_center)
-            #     n = 1
-            #     optimal = gain**(2**n)/distance
-            #     if n != 0:
-            #         n -= 0.15
-            #     if (optimal > max_optimal_curr and
-            #         distance <= self.max_step_dist_world_meters and
-            #         distance >= self.min_step_dist_world_meters):
-                    
-            #         max_optimal_curr = optimal
-            #         closest_frontier = (fy, fx)
-            #         closest = (fy_world, fx_world)
-
-            # if closest_frontier:
-            #     fy, fx = closest_frontier
-            #     world_y, world_x = closest
-
-            #     # self.logger.info(f"world_x: {world_x}, world_y: {world_y}")
-            #     goal = self.create_goal_from_map_coord(fx, fy, map_info)
-            #     self.send_goal_from_world_pose(goal)
-            #     return
-            # else:
-            #     self.max_step_dist_world_meters += 2.0
-            #     new_min_step_dist = self.min_step_dist_world_meters - 1.0
-            #     self.min_step_dist_world_meters = max(0.25, new_min_step_dist)
-
-            # self.full_map_explored_count = 0
     def shelf_coords(self,th,cx, cy, angle, dist, m):
         x1=int(cx+dist*m*np.cos(angle))
         y1=int(cy+dist*m*np.sin(angle))
@@ -688,58 +637,6 @@ class WarehouseExplore(Node):
                     continue
             self.logger.info("perfect shape not found")
 
-            if vertices == 4:
-            # Distinguish between square and rectangle
-            
-            # x, y, w, h = cv2.boundingRect(approx)
-                approx=approx.reshape((4,2))
-                aspect_ratio = math.dist(approx[0], approx[1]) / math.dist(approx[1], approx[2])
-                
-                
-                
-                r=0.95
-
-                if (r >= aspect_ratio or aspect_ratio >=1/r)  and(math.dist(approx[1], approx[3])<200 and math.dist(approx[2], approx[0]) <200) and (math.dist(approx[1], approx[3])>50 or math.dist(approx[2], approx[0]) > 50):
-                    shape_name = "RECTANGLE"
-                    color = (255, 0, 0)  
-                    if math.dist(approx[1], approx[3]) < math.dist(approx[2], approx[0]):
-                        center = (approx[0][0] + approx[2][0]) // 2, (approx[0][1] + approx[2][1]) // 2
-                    else:
-                        center = (approx[1][0] + approx[3][0]) // 2, (approx[1][1] + approx[3][1]) // 2
-
-                    m,n=8,4
-                    if math.dist(approx[0], approx[1]) < math.dist(approx[1], approx[2]):
-                        long_side_center=(approx[2][0] + approx[1][0]) // 2, (approx[2][1] + approx[1][1]) // 2
-                        short_side_center=(approx[0][0] + approx[1][0]) // 2, (approx[0][1] + approx[1][1]) // 2
-                        image_point=(long_side_center[0]-center[0])*m+center[0],(long_side_center[1]-center[1])*m+center[1]
-                        qr_code_point=(short_side_center[0]-center[0])*n+center[0],(short_side_center[1]-center[1])*n+center[1]
-                    else:
-                        long_side_center=(approx[1][0] + approx[0][0]) // 2, (approx[1][1] + approx[0][1]) // 2
-                        short_side_center=(approx[1][0] + approx[2][0]) // 2, (approx[1][1] + approx[2][1]) // 2
-                        image_point=(long_side_center[0]-center[0])*m+center[0],(long_side_center[1]-center[1])*m+center[1]
-                        qr_code_point=(short_side_center[0]-center[0])*n+center[0],(short_side_center[1]-center[1])*n+center[1]
-                else:
-                    print("  skipped")
-                    continue
-            else:
-                print("  skipped")
-                continue
-            M = cv2.moments(cnt)
-            if M["m00"] != 0:
-                # cx = int(M["m10"] / M["m00"])
-                # cy = int(M["m01"] / M["m00"])
-                dont_add=False
-                for i in shelves:
-                    if math.dist(i.com ,center) <10:
-                        dont_add=True
-                        break
-                if not dont_add:
-                    shelves.append(shelf((center[0],height-center[1]),(qr_code_point[0],height-qr_code_point[1]),(image_point[0],height-image_point[1]),(0),(0)))
-                    self.logger.info("incomplete shelf added")
-
-
-
-
 
     def find_shelves(self, img,th, height, width, map_info):
         self.full_map_explored_count += 1
@@ -768,7 +665,7 @@ class WarehouseExplore(Node):
                 dx = (shelf.com[0] - self.current_com_x)
                 dy = (shelf.com[1] - self.current_com_y)
                 # self.logger.info(f"dx: {dx}, dy: {dy}")
-                dirn = np.arctan2(dy, dx)
+                dirn = np.arctan2(dy, dx) + self.robot_initial_angle
                 if dirn < 0:
                     dirn += 2 * np.pi
                 self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
