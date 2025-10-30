@@ -507,8 +507,8 @@ class WarehouseExplore(Node):
             o1,o2=x2,y2
             return o1,o2
         else:
-            if m<1:
-                self.lofgger.info(f"extream conds met for shelf {cx,cy,angle,dist,m}")  
+            if m<0.7:
+                self.logger.info(f"extream conds met for shelf {cx,cy,angle,dist,m}")  
                 return 
             
             self.shelf_coords(th,cx, cy, angle, dist, m-0.1)
@@ -561,7 +561,7 @@ class WarehouseExplore(Node):
 
         for i, cnt in enumerate(ct):
             area = cv2.contourArea(cnt)
-            self.logger.info(f"contour {i} with area {area}")
+            # self.logger.info(f"contour {i} with area {area}")
 
             if area < 100 or area>10000:  
                 continue
