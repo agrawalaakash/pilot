@@ -646,7 +646,7 @@ class WarehouseExplore(Node):
         if self.coms==None:
             
             self.coms = "done"
-            self.qr_angle = self.initial_angle
+            self.qr_angle = self.initial_angle + self.robot_initial_angle
             self.node_x, self.node_y = self.get_map_coord_from_world_coord(0,0, map_info)
 
             # self.logger.info(f"points-->: {len(shelves)}")
@@ -665,7 +665,7 @@ class WarehouseExplore(Node):
                 dx = (shelf.com[0] - self.current_com_x)
                 dy = (shelf.com[1] - self.current_com_y)
                 # self.logger.info(f"dx: {dx}, dy: {dy}")
-                dirn = np.arctan2(dy, dx) + self.robot_initial_angle
+                dirn = np.arctan2(dy, dx)
                 if dirn < 0:
                     dirn += 2 * np.pi
                 self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
