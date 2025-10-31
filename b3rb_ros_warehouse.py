@@ -491,6 +491,7 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*m*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
+        self.logger.info(f"C1,C2: {C1,C2}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
         if C1 and C2:
@@ -519,6 +520,7 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*n*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
+        self.logger.info(f"C1,C2: {C1,C2}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
         if C1 and C2:
@@ -646,7 +648,7 @@ class WarehouseExplore(Node):
         if self.coms==None:
             
             self.coms = "done"
-            self.qr_angle = self.initial_angle + self.robot_initial_angle
+            self.qr_angle = self.initial_angle + math.degree(self.robot_initial_angle)
             self.node_x, self.node_y = self.get_map_coord_from_world_coord(0,0, map_info)
 
             # self.logger.info(f"points-->: {len(shelves)}")
