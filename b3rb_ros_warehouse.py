@@ -211,7 +211,7 @@ class WarehouseExplore(Node):
         self.max_step_dist_world_meters = 7.0
         self.min_step_dist_world_meters = 4.0
         self.full_map_explored_count = 0
-
+        self.dirn=1
         # --- QR Code Data ---
         self.qr_code_str = "Empty"
         if PROGRESS_TABLE_GUI:
@@ -425,21 +425,21 @@ class WarehouseExplore(Node):
             
             
             self.logger.info(f"checking point at :{self.node_x,self.node_y}")
-            dirn=1
+            
             dirn_toggle=True
             while 1:
                 if not self.goal_completed:
                     return
-                self.node_x+= np.cos(np.deg2rad(self.qr_angle))*dist*dirn
-                self.node_y+= np.sin(np.deg2rad(self.qr_angle))*dist*dirn
-
+                self.node_x+= np.cos(np.deg2rad(self.qr_angle))*dist*self.dirn
+                self.node_y+= np.sin(np.deg2rad(self.qr_angle))*dist*self.dirn
+                self.logger.info(f"checking point at :{self.node_x,self.node_y}")
                 self.node_x = int(self.node_x)
                 self.node_y = int(self.node_y)
                 
                 if (0<self.node_x<width and 0<self.node_y<height):
                     self.logger.info(f"checking point at :{self.node_x,self.node_y},val of point is  {img[self.node_y][self.node_x] } wit qr agle {self.qr_angle}")#
                     self.logger.info(" node point within bounds") 
-                    if img[self.node_y][self.node_x]==-1  or img[self.node_y][self.node_x]==1: #unexplored
+                    if img[self.node_y][self.node_x]==-1  : #unexplored
                         mind=10000
                         x,y=0,0
                         for fy, fx in frontiers:
@@ -448,13 +448,50 @@ class WarehouseExplore(Node):
                                 x,y=fx,fy
                         
                                 
-                        self.logger.info("unexpored or obstacle region found, going to nearest frontier ")
+                        self.logger.info("unexpored  region found, going to nearest frontier ")
 
 
                         goal = self.create_goal_from_map_coord(x, y, map_info)
                         self.send_goal_from_world_pose(goal)
+
                         
                         break
+                    elif  img[self.node_y][self.node_x]==1:
+                        self.logger.info("obstacle region found")
+                        k=0
+                        brk=False
+                        while not brk:
+                            k+=1
+                            if k>200:
+                                brk=True
+                                break
+                            for i in range(-k,k):
+                                for j in range(-k,k):
+                                    if img[self.node_y+j][self.node_x+i]==0:
+                                        self.logger.info("explored point found near obstacle ,passing it as goal")
+
+                                        goal= self.create_goal_from_map_coord(self.node_x+i,self.node_y+j,map_info)
+                                        self.send_goal_from_world_pose(goal)
+                                        brk=True
+                                        break
+                                if brk:
+                                    
+                                    break
+
+                            
+                        if brk == False:
+                            mind=10000
+                            x,y=0,0
+                            for fy, fx in frontiers:
+                                if euclidean((self.node_x,self.node_y),(fx,fy))<mind:
+                                    mind= euclidean((self.node_x,self.node_y),(fx,fy))
+                                    x,y=fx,fy
+                            self.logger.info("no explored point found near obstacle ,passing nearest forienter as a goal")
+                            goal = self.create_goal_from_map_coord(x, y, map_info)
+                            self.send_goal_from_world_pose(goal)
+
+
+
                     elif img[self.node_y][self.node_x] == 0 :# explored no obstacles
 
                         self.logger.info(f"free region {img[self.node_y][self.node_x]}")
@@ -470,17 +507,22 @@ class WarehouseExplore(Node):
 
                         self.logger.info("no unexplored point found in the dirn of next shelf,changing dirn ")
 
-                        dirn*=-1
-                        dirn_toggle=False
-                        self.node_x+= np.cos(np.deg2rad(self.qr_angle))*dist*dirn
-                        self.node_y+= np.sin(np.deg2rad(self.qr_angle))*dist*dirn
+                        
+                        
+
+                        self.node_x-= np.cos(np.deg2rad(self.qr_angle))*dist*self.dirn
+                        self.node_y-= np.sin(np.deg2rad(self.qr_angle))*dist*self.dirn
+                        self.logger.info(f"checking point at:{self.node_x,self.node_y} with changing direction ")
+                        self.dirn*=-1
+            
                         goal = self.create_goal_from_map_coord(self.node_x, self.node_y, map_info)
                         self.send_goal_from_world_pose(goal)
 
                         break
                     else :
-                        self.node_x-= np.cos(np.deg2rad(self.qr_angle))*dist*dirn
-                        self.node_y-= np.sin(np.deg2rad(self.qr_angle))*dist*dirn
+                        self.node_x-= np.cos(np.deg2rad(self.qr_angle))*dist*self.dirn
+                        self.node_y-= np.sin(np.deg2rad(self.qr_angle))*dist*self.dirn
+                        self.logger.info(f"checking point at:{self.node_x,self.node_y} while reduding dist")
                         self.logger.info("reducing dist")
                         dist-=2
 
@@ -648,7 +690,7 @@ class WarehouseExplore(Node):
         if self.coms==None:
             
             self.coms = "done"
-            self.qr_angle = self.initial_angle + math.degree(self.robot_initial_angle)
+            self.qr_angle = self.initial_angle - math.degree(self.robot_initial_angle)
             self.node_x, self.node_y = self.get_map_coord_from_world_coord(0,0, map_info)
 
             # self.logger.info(f"points-->: {len(shelves)}")
