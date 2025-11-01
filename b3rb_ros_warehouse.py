@@ -264,6 +264,8 @@ class WarehouseExplore(Node):
         self.pose_curr = message
         self.buggy_pose_x = message.pose.pose.position.x
         self.buggy_pose_y = message.pose.pose.position.y
+        if self.coms == None:
+            self.logger.info(f"initial pose {self.buggy_pose_x, self.buggy_pose_y}")
         self.buggy_center = (self.buggy_pose_x, self.buggy_pose_y)
         if self.robot_initial_angle is None:
             quat = message.pose.pose.orientation
