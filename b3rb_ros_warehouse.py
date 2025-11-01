@@ -1,3 +1,4 @@
+
 import rclpy
 from rclpy.node import Node
 from rclpy.timer import Timer
@@ -467,14 +468,14 @@ class WarehouseExplore(Node):
                                 break
                             for i in range(-k,k):
                                 for j in range(-k,k):
+                                    
                                     if 0<self.node_x+i<height and 0<self.node_y+j<width and img[self.node_y+j][self.node_x+i]==0:
-                                        if 0<self.node_x+i<height and 0<self.node_y+j<width and img[self.node_y+j][self.node_x+i]==0:
-                                            self.logger.info("explored point found near obstacle ,passing it as goal")
-    
-                                            goal= self.create_goal_from_map_coord(self.node_x+i,self.node_y+j,map_info)
-                                            self.send_goal_from_world_pose(goal)
-                                            brk=True
-                                            break
+                                        self.logger.info("explored point found near obstacle ,passing it as goal")
+
+                                        goal= self.create_goal_from_map_coord(self.node_x+i,self.node_y+j,map_info)
+                                        self.send_goal_from_world_pose(goal)
+                                        brk=True
+                                        break
                                 if brk:
                                     
                                     break
@@ -534,8 +535,8 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*m*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
-        self.logger.info(f"x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]==0}")
-        self.logger.info(f"C2=x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]==0}")
+        self.logger.info(f"for shelf coords x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
+        self.logger.info(f"for shelf coords x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
         if C1 and C2:
@@ -564,8 +565,8 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*n*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
-        self.logger.info(f"x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]==0}")
-        self.logger.info(f"C2=x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]==0}")
+        self.logger.info(f"for qr coords x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
+        self.logger.info(f"for qr coords x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
         self.logger.info(f"C1,C2: {C1,C2}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
