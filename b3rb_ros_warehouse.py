@@ -1784,7 +1784,7 @@ class WarehouseExplore(Node):
                                 brk=True
                                 break
                             for i in range(-k,k):
-                                for j in range(-k,k):y
+                                for j in range(-k,k):
                                     if 0<self.node_x+i<height and 0<self.node_y+j<width and img[self.node_y+j][self.node_x+i]==0:
                                         if img[self.node_y+j][self.node_x+i]==0:
                                             self.logger.info("explored point found near obstacle ,passing it as goal")
