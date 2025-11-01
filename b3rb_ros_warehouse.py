@@ -697,7 +697,7 @@ class WarehouseExplore(Node):
             
             self.coms = "done"
             self.qr_angle = self.initial_angle + math.degrees(self.robot_initial_angle)
-            self.loger.info(f"initial qr angle set to {self.qr_angle}")
+            self.logger.info(f"initial qr angle set to {self.qr_angle}")
             self.node_x, self.node_y = self.get_map_coord_from_world_coord(0,0, map_info)
             self.logger.info(f"initial node x ,node y {self.node_x,self.node_y}")
 
