@@ -536,8 +536,9 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*m*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
-        self.logger.info(f"for shelves x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
-        self.logger.info(f"for shelves x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
+        self.logger.info(f"for shelves x1 ,y1{x1,y1}    x2 ,y2{x2,y2}  height,width{th.shape}")
+        self.logger.info(f"for shelf coords x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
+        self.logger.info(f"for shelf coords x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
         if C1 and C2:
@@ -566,8 +567,9 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*n*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
-        self.logger.info(f"for qr x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
-        self.logger.info(f"for qr x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
+        self.logger.info(f"for qr x1 ,y1{x1,y1}    x2 ,y2{x2,y2} height,width{th.shape}")
+        self.logger.info(f"for qr coords x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
+        self.logger.info(f"for qr coords x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
         self.logger.info(f"C1,C2: {C1,C2}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
