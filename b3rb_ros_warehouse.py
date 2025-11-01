@@ -467,14 +467,14 @@ class WarehouseExplore(Node):
                                 break
                             for i in range(-k,k):
                                 for j in range(-k,k):
-                                    
                                     if 0<self.node_x+i<height and 0<self.node_y+j<width and img[self.node_y+j][self.node_x+i]==0:
-                                        self.logger.info("explored point found near obstacle ,passing it as goal")
-
-                                        goal= self.create_goal_from_map_coord(self.node_x+i,self.node_y+j,map_info)
-                                        self.send_goal_from_world_pose(goal)
-                                        brk=True
-                                        break
+                                        if 0<self.node_x+i<height and 0<self.node_y+j<width and img[self.node_y+j][self.node_x+i]==0:
+                                            self.logger.info("explored point found near obstacle ,passing it as goal")
+    
+                                            goal= self.create_goal_from_map_coord(self.node_x+i,self.node_y+j,map_info)
+                                            self.send_goal_from_world_pose(goal)
+                                            brk=True
+                                            break
                                 if brk:
                                     
                                     break
