@@ -1,4 +1,3 @@
-
 import rclpy
 from rclpy.node import Node
 from rclpy.timer import Timer
@@ -535,8 +534,8 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*m*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
-        self.logger.info(f"for shelf coords x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
-        self.logger.info(f"for shelf coords x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
+        self.logger.info(f"x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]==0}")
+        self.logger.info(f"C2=x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]==0}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
         if C1 and C2:
@@ -565,8 +564,8 @@ class WarehouseExplore(Node):
         y2= int(cy-dist*n*np.sin(angle))
         C1=x1>0 and  x1<th.shape[1] and y1>0 and y1<th.shape[0] and  th[y1][x1]==0
         C2=x2>0 and x2<th.shape[1] and y2>0 and y2<th.shape[0] and th[y2][x2]==0
-        self.logger.info(f"for qr coords x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]}")
-        self.logger.info(f"for qr coords x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]}")
+        self.logger.info(f"x1>0  {x1>0 } x1<th.shape[1] {x1<th.shape[1]}  y1>0 {y1>0} y1<th.shape[0] {y1<th.shape[0]}  th[y1][x1]==0 {th[y1][x1]==0}")
+        self.logger.info(f"C2=x2>0:{x2>0}   x2<th.shape[1]:{x2<th.shape[1]}   y2>0:{y2>0}   y2<th.shape[0]:{y2<th.shape[0]} th[y2][x2]==0:{th[y2][x2]==0}")
         self.logger.info(f"C1,C2: {C1,C2}")
         dist1=euclidean(self.buggy_center,(x1,y1))
         dist2=euclidean(self.buggy_center,(x2,y2))
@@ -696,6 +695,7 @@ class WarehouseExplore(Node):
             
             self.coms = "done"
             self.qr_angle = self.initial_angle + math.degrees(self.robot_initial_angle)
+            self.loger.info(f"initial qr angle set to {self.qr_angle}")
             self.node_x, self.node_y = self.get_map_coord_from_world_coord(0,0, map_info)
 
             # self.logger.info(f"points-->: {len(shelves)}")
@@ -1321,3 +1321,6 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+
+    
