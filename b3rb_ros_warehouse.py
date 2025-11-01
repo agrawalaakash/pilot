@@ -565,7 +565,7 @@ class WarehouseExplore(Node):
                 self.logger.info(f"extream conds met for shelf {cx,cy,angle,dist,m}")  
                 return 
             
-            self.shelf_coords(th,cx, cy, angle, dist, m-0.1)
+            return self.shelf_coords(th,cx, cy, angle, dist, m-0.1)
     def qr_coords(self,th,cx, cy, angle, dist, n):
         x1=int(cx+dist*n*np.cos(angle))
         y1=int(cy+dist*n*np.sin(angle))
@@ -603,8 +603,7 @@ class WarehouseExplore(Node):
             if n<0.8:
                 # self.logger.info(f"extream conds met for qr {cx,cy,angle,dist,n}")  
                 return 
-            
-            self.qr_coords(th,cx, cy, angle, dist, n-0.05)
+            return self.qr_coords(th,cx, cy, angle, dist, n-0.05)
     def get_shelves(self, img,th, height, width):
         global shelves
         shelves=[]
