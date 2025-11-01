@@ -690,7 +690,7 @@ class WarehouseExplore(Node):
         if self.coms==None:
             
             self.coms = "done"
-            self.qr_angle = self.initial_angle - math.degrees(self.robot_initial_angle)
+            self.qr_angle = self.initial_angle + math.degrees(self.robot_initial_angle)
             self.node_x, self.node_y = self.get_map_coord_from_world_coord(0,0, map_info)
 
             # self.logger.info(f"points-->: {len(shelves)}")
