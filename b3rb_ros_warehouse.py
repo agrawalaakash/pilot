@@ -600,8 +600,8 @@ class WarehouseExplore(Node):
             c1,c2=x2,y2
             return c1,c2
         else:
-            if n<0.8:
-                # self.logger.info(f"extream conds met for qr {cx,cy,angle,dist,n}")  
+            if n<0.5:
+                self.logger.info(f"extream conds met for qr {cx,cy,angle,dist,n}")  
                 return 
             return self.qr_coords(th,cx, cy, angle, dist, n-0.05)
     def get_shelves(self, img,th, height, width):
