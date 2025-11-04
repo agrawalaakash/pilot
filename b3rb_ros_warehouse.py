@@ -728,23 +728,23 @@ class WarehouseExplore(Node):
             shelf.com = self.get_world_coord_from_map_coord(shelf.com[0],shelf.com[1], map_info)
             
             if shelf.com != (self.current_com_x,self.current_com_y): #for skiping current shelf from checking
-                dx = (shelf.com[0] - self.current_com_x)
-                dy = (shelf.com[1] - self.current_com_y)
-                # self.logger.info(f"dx: {dx}, dy: {dy}")
-                dirn = np.arctan2(dy, dx)
-                if dirn < 0:
-                    dirn += 2 * np.pi
-                self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
-                qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
-                error_rad = np.deg2rad(error)
+                # dx = (shelf.com[0] - self.current_com_x)
+                # dy = (shelf.com[1] - self.current_com_y)
+                # # self.logger.info(f"dx: {dx}, dy: {dy}")
+                # dirn = np.arctan2(dy, dx)
+                # if dirn < 0:
+                #     dirn += 2 * np.pi
+                # self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
+                # qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
+                # error_rad = np.deg2rad(error)
 
-                dirn_norm = dirn % (2 * np.pi)
-                qr_angle_norm = qr_angle_rad % (2 * np.pi)
+                # dirn_norm = dirn % (2 * np.pi)
+                # qr_angle_norm = qr_angle_rad % (2 * np.pi)
 
-                angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
+                # angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
 
-                if abs(angle_diff) < error_rad:
-                    shelf_index.append(counter)
+                # if abs(angle_diff) < error_rad:
+                shelf_index.append(counter)
                     
             counter+=1
         
