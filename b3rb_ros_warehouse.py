@@ -744,7 +744,7 @@ class WarehouseExplore(Node):
                 angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
 
                 if abs(angle_diff) < error_rad:
-                shelf_index.append(counter)
+                    shelf_index.append(counter)
                     
             counter+=1
         
