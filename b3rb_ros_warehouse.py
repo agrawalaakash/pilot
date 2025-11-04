@@ -306,6 +306,9 @@ class WarehouseExplore(Node):
         else:
             pass
 
+
+
+
         if len(shelf_index) > 1:
             min_dist = float('inf')
             
@@ -323,14 +326,25 @@ class WarehouseExplore(Node):
         else:
             counter = shelf_index[0]
         
-        if self.qr_array[self.prev_no_qr] != '0':
-            self.qr_random = self.qr_array[self.prev_no_qr]
-            self.qr_done = True
-            # self.logger.info(f"qr_code_str_new: {self.qr_random}")
-        else:
-            self.qr_random = self.qr_code_str
 
-        if not self.qr_done:
+
+
+
+
+
+        # if self.qr_array[self.prev_no_qr] != '0':
+        #     self.qr_random = self.qr_array[self.prev_no_qr]
+        #     self.qr_done = True
+        #     # self.logger.info(f"qr_code_str_new: {self.qr_random}")
+        # else:
+        #     self.qr_random = self.qr_code_str
+        self.qr_random = self.qr_code_str
+
+
+
+
+
+        if not self.qr_done:#qr_done false
 
             # self.logger.info(f"shelf index-->: {counter}")
             #takes the robot to qr of next shelf
@@ -347,25 +361,16 @@ class WarehouseExplore(Node):
             self.logger.warn(f"send_angle: {angle}")
             # self.qr_done = True #right now the current shelves[counter] refers to the next shelf even in the below else block shelves[counter]		
             
-        else:	
+        else:	# qr detected
             if self.qr_random.split("_")[0]  != "Empty":
                 no_qr = int(self.qr_random.split("_")[0])
+
                 # self.logger.info(f"return {no_qr}")
                 # self.logger.info("check 3")
-                if no_qr != (self.prev_no_qr + 1) and len(shelf_index) > 1:
-                    self.next_shelf = True
-                    # self.next_count += 1
-                    self.qr_done = False
-                    # self.logger.info("check 2")
-                    return
-                elif no_qr != (self.prev_no_qr + 1):
-                    self.explore(img, map_array, map_info)
-                    self.qr_done = False
-                    return
-                else:
-                    self.next_shelf = False
-                    # self.next_count = 0
-                    self.current_count = []
+                
+                self.next_shelf = False
+                # self.next_count = 0
+                self.current_count = []
             else: 
                 return
             self.prev_no_qr = no_qr
@@ -376,8 +381,8 @@ class WarehouseExplore(Node):
             fx, fy =shelves[counter].obj_scan_coords
             shelves[counter].obj_scan_coords = self.get_world_coord_from_map_coord(shelves[counter].obj_scan_coords[0],shelves[counter].obj_scan_coords[1], map_info)
             # self.logger.info("check 1")
-            dx = shelves[counter].com[0] - shelves[counter].obj_scan_coords[0]
-            dy = shelves[counter].com[1] - shelves[counter].obj_scan_coords[1]
+            # dx = shelves[counter].com[0] - shelves[counter].obj_scan_coords[0]
+            # dy = shelves[counter].com[1] - shelves[counter].obj_scan_coords[1]
             self.logger.warn(f"com: {shelves[counter].com} obj_coords: {shelves[counter].obj_scan_coords}")
             angle = self.create_yaw_from_vector(shelves[counter].com[0], shelves[counter].com[1], shelves[counter].obj_scan_coords[0], shelves[counter].obj_scan_coords[1] )
 
@@ -728,23 +733,23 @@ class WarehouseExplore(Node):
             shelf.com = self.get_world_coord_from_map_coord(shelf.com[0],shelf.com[1], map_info)
             
             if shelf.com != (self.current_com_x,self.current_com_y): #for skiping current shelf from checking
-                dx = (shelf.com[0] - self.current_com_x)
-                dy = (shelf.com[1] - self.current_com_y)
-                # self.logger.info(f"dx: {dx}, dy: {dy}")
-                dirn = np.arctan2(dy, dx)
-                if dirn < 0:
-                    dirn += 2 * np.pi
-                self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
-                qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
-                error_rad = np.deg2rad(error)
+                # dx = (shelf.com[0] - self.current_com_x)
+                # dy = (shelf.com[1] - self.current_com_y)
+                # # self.logger.info(f"dx: {dx}, dy: {dy}")
+                # dirn = np.arctan2(dy, dx)
+                # if dirn < 0:
+                #     dirn += 2 * np.pi
+                # self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
+                # qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
+                # error_rad = np.deg2rad(error)
 
-                dirn_norm = dirn % (2 * np.pi)
-                qr_angle_norm = qr_angle_rad % (2 * np.pi)
+                # dirn_norm = dirn % (2 * np.pi)
+                # qr_angle_norm = qr_angle_rad % (2 * np.pi)
 
-                angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
+                # angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
 
-                if abs(angle_diff) < error_rad:
-                    shelf_index.append(counter)
+                # if abs(angle_diff) < error_rad:
+                shelf_index.append(counter)
                     
             counter+=1
         
