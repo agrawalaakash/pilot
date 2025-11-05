@@ -401,7 +401,7 @@ class WarehouseExplore(Node):
             self.logger.warn(f"qr qr {self.qr_angle}")
             
             # self.logger.info(f"next shelf com-->: {shelves[counter].com}")
-            detected_com.append((shelves[counter].com))
+            detected_com.append(self.get_map_coord_from_world_coord((shelves[counter].com[0], shelves[counter].com[1], map_info)))
             
         # fx_world, fy_world = self.get_world_coord_from_map_coord(fx, fy, map_info)
         # self.logger.info(f"fx_map: {fx}, fy_map: {fy}, angle: {angle}")
@@ -1008,7 +1008,7 @@ class WarehouseExplore(Node):
         for object in message.object_count:
             count += object
 
-        if int(self.qr_code_str.split("_")) != self.obj_iter:
+        if int(self.qr_code_str.split("_")'[0]') != self.obj_iter:
             sequence[int(self.qr_code_str.split("_")[0])]= sequence_publisher(count, message.object_name, message.qr_decoded)
             
         else:
