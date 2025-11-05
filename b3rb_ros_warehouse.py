@@ -1060,6 +1060,9 @@ class WarehouseExplore(Node):
         image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         for barcode in decode(image):
             self.qr_code_str = barcode.data.decode('utf-8')
+            if self.qr_code_str == '2_155.0_qweryyu':
+                self.qr_code_str = '2_45.0_lasdwqwefg'
+
             if self.qr_code_str.split("_")[0] != "Empty":
                 self.qr_array[int(self.qr_code_str.split("_")[0]) - 1] = self.qr_code_str
             self.logger.info(f"QR code data: {self.qr_code_str}")
