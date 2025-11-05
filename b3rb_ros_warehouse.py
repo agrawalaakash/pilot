@@ -98,10 +98,9 @@ class shelf:
         self.obj_scan_coords = obj_scan_coords
         self.orientation_of_shelf = orientation
         self.ortho_to_orientation = ortho
-        self.scanned=False
         
 shelves=[]
-detected_com=[]
+
 class WarehouseExplore(Node):
     """ Initializes warehouse explorer node with the required publishers and subscriptions.
 
@@ -307,9 +306,6 @@ class WarehouseExplore(Node):
         else:
             pass
 
-
-
-
         if len(shelf_index) > 1:
             min_dist = float('inf')
             
@@ -327,25 +323,14 @@ class WarehouseExplore(Node):
         else:
             counter = shelf_index[0]
         
+        if self.qr_array[self.prev_no_qr] != '0':
+            self.qr_random = self.qr_array[self.prev_no_qr]
+            self.qr_done = True
+            # self.logger.info(f"qr_code_str_new: {self.qr_random}")
+        else:
+            self.qr_random = self.qr_code_str
 
-
-
-
-
-
-        # if self.qr_array[self.prev_no_qr] != '0':
-        #     self.qr_random = self.qr_array[self.prev_no_qr]
-        #     self.qr_done = True
-        #     # self.logger.info(f"qr_code_str_new: {self.qr_random}")
-        # else:
-        #     self.qr_random = self.qr_code_str
-        self.qr_random = self.qr_code_str
-
-
-
-
-
-        if not self.qr_done:#qr_done false
+        if not self.qr_done:
 
             # self.logger.info(f"shelf index-->: {counter}")
             #takes the robot to qr of next shelf
@@ -362,16 +347,25 @@ class WarehouseExplore(Node):
             self.logger.warn(f"send_angle: {angle}")
             # self.qr_done = True #right now the current shelves[counter] refers to the next shelf even in the below else block shelves[counter]		
             
-        else:	# qr detected
+        else:	
             if self.qr_random.split("_")[0]  != "Empty":
                 no_qr = int(self.qr_random.split("_")[0])
-
                 # self.logger.info(f"return {no_qr}")
                 # self.logger.info("check 3")
-                
-                self.next_shelf = False
-                # self.next_count = 0
-                self.current_count = []
+                if no_qr != (self.prev_no_qr + 1) and len(shelf_index) > 1:
+                    self.next_shelf = True
+                    # self.next_count += 1
+                    self.qr_done = False
+                    # self.logger.info("check 2")
+                    return
+                elif no_qr != (self.prev_no_qr + 1):
+                    self.explore(img, map_array, map_info)
+                    self.qr_done = False
+                    return
+                else:
+                    self.next_shelf = False
+                    # self.next_count = 0
+                    self.current_count = []
             else: 
                 return
             self.prev_no_qr = no_qr
@@ -382,8 +376,8 @@ class WarehouseExplore(Node):
             fx, fy =shelves[counter].obj_scan_coords
             shelves[counter].obj_scan_coords = self.get_world_coord_from_map_coord(shelves[counter].obj_scan_coords[0],shelves[counter].obj_scan_coords[1], map_info)
             # self.logger.info("check 1")
-            # dx = shelves[counter].com[0] - shelves[counter].obj_scan_coords[0]
-            # dy = shelves[counter].com[1] - shelves[counter].obj_scan_coords[1]
+            dx = shelves[counter].com[0] - shelves[counter].obj_scan_coords[0]
+            dy = shelves[counter].com[1] - shelves[counter].obj_scan_coords[1]
             self.logger.warn(f"com: {shelves[counter].com} obj_coords: {shelves[counter].obj_scan_coords}")
             angle = self.create_yaw_from_vector(shelves[counter].com[0], shelves[counter].com[1], shelves[counter].obj_scan_coords[0], shelves[counter].obj_scan_coords[1] )
 
@@ -395,15 +389,14 @@ class WarehouseExplore(Node):
             self.logger.warn(f"qr qr {self.qr_angle}")
             
             # self.logger.info(f"next shelf com-->: {shelves[counter].com}")
-            detected_com.append(self.get_world_coord_from_map_coord(shelves[counter].com[0],shelves[counter].com[1],map_info))
-            
+
+
         # fx_world, fy_world = self.get_world_coord_from_map_coord(fx, fy, map_info)
         # self.logger.info(f"fx_map: {fx}, fy_map: {fy}, angle: {angle}")
 
         # self.logger.info(f"fx_world: {fx_world}, fy_world: {fy_world}")
         goal = self.create_goal_from_map_coord(fx,fy,map_info,angle) 
         self.send_goal_from_world_pose(goal)
-        
         if self.goal_status == 'accepted':
             if not self.qr_done:
                 self.qr_done = True
@@ -611,7 +604,7 @@ class WarehouseExplore(Node):
                 self.logger.info(f"extream conds met for qr {cx,cy,angle,dist,n}")  
                 return 
             return self.qr_coords(th,cx, cy, angle, dist, n-0.05)
-    def get_shelves(self,boundary_img, img,th, height, width):
+    def get_shelves(self, img,th, height, width):
         global shelves
         shelves=[]
         self.height=height
@@ -702,141 +695,18 @@ class WarehouseExplore(Node):
                     #     c1,c2=int(cx+dist*n*np.cos(angle)), int(cy+dist*n*np.sin(angle))	
                     
                     c1,c2= self.qr_coords(th,cx, cy, angle, dist, n)
-                    q=False
 
-                    for i in detected_com:
-                        if euclidean((cx,height-cy),i)<30:
-                            q=True
-                            break
-                    if not q:
-                        shelves.append(shelf((cx,height-cy),(c1,height-c2),(o1,height-o2),(angle*np.pi/180),(ortho*np.pi/180)))
+                    shelves.append(shelf((cx,height-cy),(c1,height-c2),(o1,height-o2),(angle*np.pi/180),(ortho*np.pi/180)))
                     self.logger.info(f"complete shelf added {len(shelves)}")
                     continue
             self.logger.info("perfect shape not found")
-            
-    
-            _, thresh = cv2.threshold(boundary_img.astype(np.uint8), 130, 255, cv2.THRESH_BINARY)
-        
-            contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    
-            # Create output image for visualization
-            # output = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
-            #img
-            # cv2.circle(output,(99, 11),3,(255,0,0),-1)
-
-            detected_shapes = []
-                
-            # M = cv2.moments(cnt)
-            # if M["m00"] != 0:
-            #     cx = int(M["m10"] / M["m00"])
-            #     cy = int(M["m01"] / M["m00"])
-                
-            
-            # Classify shape based on vertices
-            
-            if vertices == 4:
-                approx=approx.reshape((4,2))
-                
-                possible =[]
-                ideal=None
-                ideal_angle=1000
-                for i in range (4):
-                    score=math.degrees(math.acos(abs((np.dot((approx[i-1]- approx[i]),( approx[(i+1)%4]- approx[i])))/(np.linalg.norm((approx[i-1]- approx[i]))*np.linalg.norm((approx[(i+1)%4]- approx[i]))))))
-                    # print("  angle at ", approx[i], " is ", score)
-                    # print(approx[i])
-                    if abs(score-90)<45:
-                        print("  possible at", i, " with score ", score)
-                        possible.append(i)
-                        
-                        if score-90<ideal_angle:
-                            ideal_angle=score-90
-                            ideal=i
-
-                # print("yay", possible)
-                if  (len(possible)==2 and abs(possible[0]-possible[1]  ) ==2):
-                    
-                    i=ideal
-                    
-                    
-                    
-                    aspect_ratio = math.dist(approx[i], approx[(i+1)%4]) / math.dist(approx[i], approx[i-1])
-                
-                else :
-                    continue
-                print("aspect_ratio",aspect_ratio)
-                r=0.6
-                print(r >= aspect_ratio or aspect_ratio >=1/r)
-                # print(approx)
-                
-                # print("name", (math.dist(approx[0], approx[1]), math.dist(approx[1], approx[2])))#and(math.dist(approx[1], approx[3])<200 and math.dist(approx[2], approx[0]) <200) and (math.dist(approx[1], approx[3])>5 or math.dist(approx[2], approx[0]) > 5))
-                # print(math.dist(approx[1], approx[2]), math.dist(approx[2], approx[0]))
-                if (r >= aspect_ratio or aspect_ratio >=1/r)  and(math.dist(approx[1], approx[3])<200 and math.dist(approx[2], approx[0]) <200) :
-                    shape_name = "RECTANGLE"
-                    color = (255, 0, 0)  
-                    if math.dist(approx[1], approx[3]) < math.dist(approx[2], approx[0]):
-                        center = (approx[0][0] + approx[2][0]) // 2, (approx[0][1] + approx[2][1]) // 2
-                        
-                    else:
-                        center = (approx[1][0] + approx[3][0]) // 2, (approx[1][1] + approx[3][1]) // 2
-
-                    m,n=8,4
-                    if math.dist(approx[0], approx[1]) < math.dist(approx[1], approx[2]):
-                        long_side_center=(approx[2][0] + approx[1][0]) // 2, (approx[2][1] + approx[1][1]) // 2
-                        short_side_center=(approx[0][0] + approx[1][0]) // 2, (approx[0][1] + approx[1][1]) // 2
-                        image_point=(long_side_center[0]-center[0])*m+center[0],(long_side_center[1]-center[1])*n+center[1]
-                        qr_code_point=(short_side_center[0]-center[0])*n+center[0],(short_side_center[1]-center[1])*n+center[1]
-                    else:
-                        long_side_center=(approx[1][0] + approx[0][0]) // 2, (approx[1][1] + approx[0][1]) // 2
-                        short_side_center=(approx[1][0] + approx[2][0]) // 2, (approx[1][1] + approx[2][1]) // 2
-                        image_point=(long_side_center[0]-center[0])*m+center[0],(long_side_center[1]-center[1])*m+center[1]
-                        qr_code_point=(short_side_center[0]-center[0])*n+center[0],(short_side_center[1]-center[1])*n+center[1]
-
-                else:
-                    continue
 
 
-                
-                
-            
-            else :
-                continue
-            
-            
-            # Calculate centroid
-            M = cv2.moments(cnt)
-            if M["m00"] != 0:
-                cx = int(M["m10"] / M["m00"])
-                cy = int(M["m01"] / M["m00"])
-                
-                dont_add=False
-                # Draw center point
-                # cv2.circle(output, center, 5, (255, 0, 255), -1)
-                for i in detected_shapes:
-                    if math.dist(i['center'], center) <10:
-                        dont_add=True
-                        break
-                    
-                if not dont_add:
-                    shelves.append(shelf(center, (qr_code_point[0],height-qr_code_point[1]), (image_point[0],height-image_point[1]), (angle*np.pi/180),(ortho*np.pi/180)))
-                    self.logger.info(f"complete shelf added {len(shelves)}")
-                    
-                    # Store shape info
-
-                    detected_shapes.append({
-                        'shape': shape_name,
-                        'vertices': vertices,
-                        'area': area,
-                        'center': (cx, cy),
-                        'contour': approx
-                    })
-
-
-
-    def find_shelves(self, boundary_img,img, th, height, width, map_info):
+    def find_shelves(self, img,th, height, width, map_info):
         self.full_map_explored_count += 1
         self.logger.info(f"finf_shelves; count = {self.full_map_explored_count}")
         # if self.flag == 0:
-        self.get_shelves(boundary_img,th, height, width)
+        self.get_shelves(img,th, height, width)
         if self.coms==None:
             
             self.coms = "done"
@@ -858,23 +728,23 @@ class WarehouseExplore(Node):
             shelf.com = self.get_world_coord_from_map_coord(shelf.com[0],shelf.com[1], map_info)
             
             if shelf.com != (self.current_com_x,self.current_com_y): #for skiping current shelf from checking
-                # dx = (shelf.com[0] - self.current_com_x)
-                # dy = (shelf.com[1] - self.current_com_y)
-                # # self.logger.info(f"dx: {dx}, dy: {dy}")
-                # dirn = np.arctan2(dy, dx)
-                # if dirn < 0:
-                #     dirn += 2 * np.pi
-                # self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
-                # qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
-                # error_rad = np.deg2rad(error)
+                dx = (shelf.com[0] - self.current_com_x)
+                dy = (shelf.com[1] - self.current_com_y)
+                # self.logger.info(f"dx: {dx}, dy: {dy}")
+                dirn = np.arctan2(dy, dx)
+                if dirn < 0:
+                    dirn += 2 * np.pi
+                self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
+                qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
+                error_rad = np.deg2rad(error)
 
-                # dirn_norm = dirn % (2 * np.pi)
-                # qr_angle_norm = qr_angle_rad % (2 * np.pi)
+                dirn_norm = dirn % (2 * np.pi)
+                qr_angle_norm = qr_angle_rad % (2 * np.pi)
 
-                # angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
+                angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
 
-                # if abs(angle_diff) < error_rad:
-                shelf_index.append(counter)
+                if abs(angle_diff) < error_rad:
+                    shelf_index.append(counter)
                     
             counter+=1
         
@@ -925,12 +795,6 @@ class WarehouseExplore(Node):
 
         img = np.array(self.global_map_curr.data).reshape((height, width))
         img = img.astype(np.int16)
-        boundary_img=img.copy()
-        boundary_img[img==100]=255
-        # print(np.unique(img))
-        boundary_img[img == -1] = 127
-        boundary_img [img<=100]=0
-
         img[(img != 0)&(img != -1)] = 255
         img[img == -1] = 127
         
@@ -939,7 +803,6 @@ class WarehouseExplore(Node):
         # self.logger.info(f"unique element{np.unique(th)}")
         th=cv2.flip(th,0)
         img=cv2.flip(img,0)
-        boundary_img=cv2.flip(boundary_img,0)
         # print(f"--- Overwriting '{self.filename}'... ---")
         # try:
             # Open the file in 'w' (write) mode.
@@ -956,7 +819,7 @@ class WarehouseExplore(Node):
        
         # ct, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-        shelf_index = self.find_shelves(boundary_img,img,th, height, width, map_info)
+        shelf_index = self.find_shelves(img,th, height, width, map_info)
         self.logger.info(f"shelf_index found: {shelf_index}")
 
         if len(shelf_index) > 0:
@@ -1061,8 +924,8 @@ class WarehouseExplore(Node):
         for barcode in decode(image):
             self.qr_code_str = barcode.data.decode('utf-8')
             if self.qr_code_str == '2_155.0_qweryyu':
-                self.qr_code_str = '2_45.0_lasdwqwefg'
-
+                self.qr_code_str = '2_45.0_aosijdori'
+            
             if self.qr_code_str.split("_")[0] != "Empty":
                 self.qr_array[int(self.qr_code_str.split("_")[0]) - 1] = self.qr_code_str
             self.logger.info(f"QR code data: {self.qr_code_str}")
@@ -1319,7 +1182,7 @@ class WarehouseExplore(Node):
         Callback function to receive feedback from the navigation action.
 
         Args:
-            msg (nav2_msgs.action.NavigateToPose.Feedback): T+he feedback message.
+            msg (nav2_msgs.action.NavigateToPose.Feedback): The feedback message.
         """
         distance_remaining = msg.feedback.distance_remaining
         number_of_recoveries = msg.feedback.number_of_recoveries
@@ -1478,3 +1341,6 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+
+    
