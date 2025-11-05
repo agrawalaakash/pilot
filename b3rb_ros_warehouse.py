@@ -832,7 +832,7 @@ class WarehouseExplore(Node):
 
 
 
-    def find_shelves(self, boundary_img,th, height, width, map_info):
+    def find_shelves(self, boundary_img,img, th, height, width, map_info):
         self.full_map_explored_count += 1
         self.logger.info(f"finf_shelves; count = {self.full_map_explored_count}")
         # if self.flag == 0:
