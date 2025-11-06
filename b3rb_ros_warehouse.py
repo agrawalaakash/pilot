@@ -315,8 +315,6 @@ class WarehouseExplore(Node):
             pass
 
 
-
-
         if len(shelf_index) > 1:
             self.logger.info("one than one shelf deteted")
             min_dist = float('inf')
@@ -331,15 +329,10 @@ class WarehouseExplore(Node):
                     min_dist = dist
                     counter = index
                     # self.logger.info(f"min_dist: {min_dist}")
-            self.current_count.append(index)
+            
         else:
             counter = shelf_index[0]
-        
-
-
-
-
-
+        self.current_count.append(counter)
 
         # if self.qr_array[self.prev_no_qr] != '0':
         #     self.qr_random = self.qr_array[self.prev_no_qr]
@@ -569,7 +562,7 @@ class WarehouseExplore(Node):
             o1,o2=x2,y2
             return o1,o2
         else:
-            if m<0.5:
+            if m<0.2:
                 self.logger.info(f"extream conds met for shelf {cx,cy,angle,dist,m}")  
                 return 
             
@@ -608,7 +601,7 @@ class WarehouseExplore(Node):
             c1,c2=x2,y2
             return c1,c2
         else:
-            if n<0.5:
+            if n<0.2:
                 self.logger.info(f"extream conds met for qr {cx,cy,angle,dist,n}")  
                 return 
             return self.qr_coords(th,cx, cy, angle, dist, n-0.05)
