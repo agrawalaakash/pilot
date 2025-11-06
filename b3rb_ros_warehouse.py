@@ -86,13 +86,8 @@ def run_gui(shelf_count):
     box_app = WindowProgressTable(root, shelf_count)
     root.mainloop()
 
-sequence = {}
 
-class sequence_publisher:
-    def __init__(self, name, count, qr):
-        self.name = name
-        self.count = count
-        self.qr = qr
+
 
 class shelf:
     
@@ -103,10 +98,9 @@ class shelf:
         self.obj_scan_coords = obj_scan_coords
         self.orientation_of_shelf = orientation
         self.ortho_to_orientation = ortho
-        self.scanned=False
         
 shelves=[]
-detected_com=[]
+
 class WarehouseExplore(Node):
     """ Initializes warehouse explorer node with the required publishers and subscriptions.
 
@@ -256,7 +250,6 @@ class WarehouseExplore(Node):
         self.halt_counter = 0
         self.last_moved_time = self.get_clock().now().nanoseconds
         self.robot_initial_angle = None
-        self.obj_iter = 1
 
 
     def pose_callback(self, message):
@@ -313,11 +306,7 @@ class WarehouseExplore(Node):
         else:
             pass
 
-
-
-
         if len(shelf_index) > 1:
-            self.logger.info("one than one shelf deteted")
             min_dist = float('inf')
             
             for index in shelf_index:
@@ -334,25 +323,14 @@ class WarehouseExplore(Node):
         else:
             counter = shelf_index[0]
         
+        if self.qr_array[self.prev_no_qr] != '0':
+            self.qr_random = self.qr_array[self.prev_no_qr]
+            self.qr_done = True
+            # self.logger.info(f"qr_code_str_new: {self.qr_random}")
+        else:
+            self.qr_random = self.qr_code_str
 
-
-
-
-
-
-        # if self.qr_array[self.prev_no_qr] != '0':
-        #     self.qr_random = self.qr_array[self.prev_no_qr]
-        #     self.qr_done = True
-        #     # self.logger.info(f"qr_code_str_new: {self.qr_random}")
-        # else:
-        #     self.qr_random = self.qr_code_str
-        self.qr_random = self.qr_code_str
-
-
-
-
-
-        if not self.qr_done:#qr_done false
+        if not self.qr_done:
 
             # self.logger.info(f"shelf index-->: {counter}")
             #takes the robot to qr of next shelf
@@ -369,16 +347,25 @@ class WarehouseExplore(Node):
             self.logger.warn(f"send_angle: {angle}")
             # self.qr_done = True #right now the current shelves[counter] refers to the next shelf even in the below else block shelves[counter]		
             
-        else:	# qr detected
+        else:	
             if self.qr_random.split("_")[0]  != "Empty":
                 no_qr = int(self.qr_random.split("_")[0])
-
                 # self.logger.info(f"return {no_qr}")
                 # self.logger.info("check 3")
-                
-                self.next_shelf = False
-                # self.next_count = 0
-                self.current_count = []
+                if no_qr != (self.prev_no_qr + 1) and len(shelf_index) > 1:
+                    self.next_shelf = True
+                    # self.next_count += 1
+                    self.qr_done = False
+                    # self.logger.info("check 2")
+                    return
+                elif no_qr != (self.prev_no_qr + 1):
+                    self.explore(img, map_array, map_info)
+                    self.qr_done = False
+                    return
+                else:
+                    self.next_shelf = False
+                    # self.next_count = 0
+                    self.current_count = []
             else: 
                 return
             self.prev_no_qr = no_qr
@@ -389,8 +376,8 @@ class WarehouseExplore(Node):
             fx, fy =shelves[counter].obj_scan_coords
             shelves[counter].obj_scan_coords = self.get_world_coord_from_map_coord(shelves[counter].obj_scan_coords[0],shelves[counter].obj_scan_coords[1], map_info)
             # self.logger.info("check 1")
-            # dx = shelves[counter].com[0] - shelves[counter].obj_scan_coords[0]
-            # dy = shelves[counter].com[1] - shelves[counter].obj_scan_coords[1]
+            dx = shelves[counter].com[0] - shelves[counter].obj_scan_coords[0]
+            dy = shelves[counter].com[1] - shelves[counter].obj_scan_coords[1]
             self.logger.warn(f"com: {shelves[counter].com} obj_coords: {shelves[counter].obj_scan_coords}")
             angle = self.create_yaw_from_vector(shelves[counter].com[0], shelves[counter].com[1], shelves[counter].obj_scan_coords[0], shelves[counter].obj_scan_coords[1] )
 
@@ -402,15 +389,14 @@ class WarehouseExplore(Node):
             self.logger.warn(f"qr qr {self.qr_angle}")
             
             # self.logger.info(f"next shelf com-->: {shelves[counter].com}")
-            detected_com.append(self.get_map_coord_from_world_coord(shelves[counter].com[0], shelves[counter].com[1], map_info))
-            
+
+
         # fx_world, fy_world = self.get_world_coord_from_map_coord(fx, fy, map_info)
         # self.logger.info(f"fx_map: {fx}, fy_map: {fy}, angle: {angle}")
 
         # self.logger.info(f"fx_world: {fx_world}, fy_world: {fy_world}")
         goal = self.create_goal_from_map_coord(fx,fy,map_info,angle) 
         self.send_goal_from_world_pose(goal)
-        
         if self.goal_status == 'accepted':
             if not self.qr_done:
                 self.qr_done = True
@@ -484,7 +470,7 @@ class WarehouseExplore(Node):
                             for i in range(-k,k):
                                 for j in range(-k,k):
                                     
-                                    if 0<self.node_x+i<width and 0<self.node_y+j<height and img[self.node_y+j][self.node_x+i]==0:
+                                    if 0<self.node_x+i<height and 0<self.node_y+j<width and img[self.node_y+j][self.node_x+i]==0:
                                         self.logger.info("explored point found near obstacle ,passing it as goal")
 
                                         goal= self.create_goal_from_map_coord(self.node_x+i,self.node_y+j,map_info)
@@ -618,7 +604,6 @@ class WarehouseExplore(Node):
                 self.logger.info(f"extream conds met for qr {cx,cy,angle,dist,n}")  
                 return 
             return self.qr_coords(th,cx, cy, angle, dist, n-0.05)
-        
     def get_shelves(self, img,th, height, width):
         global shelves
         shelves=[]
@@ -647,8 +632,7 @@ class WarehouseExplore(Node):
             perimeter = cv2.arcLength(cnt, True)
             epsilon = 0.04 * perimeter
             approx = cv2.approxPolyDP(cnt, epsilon, True)
-            vertices = len(
-                approx)
+            vertices = len(approx)
             rect = cv2.minAreaRect(cnt)
             box = cv2.boxPoints(rect)  
             box = np.intp(box) 
@@ -671,7 +655,7 @@ class WarehouseExplore(Node):
                     dist=np.sqrt((box[0][0]-box[1][0])**2+(box[0][1]-box[1][1])**2)
                 
                 else :
-                    if (box[0][0]-box[1][0])!= 0:
+                    if (box[0][0]-box[1][0])!=0:
                         slope= (box[0][1]-box[1][1])/(box[0][0]-box[1][0])
                         angle = np.arctan(slope) 
                         
@@ -689,8 +673,8 @@ class WarehouseExplore(Node):
                 if M["m00"] != 0:
                     cx = int(M["m10"] / M["m00"])
                     cy = int(M["m01"] / M["m00"])
-                    n=1.0
-                    m=1.2
+                    n=1
+                    m=1.5
                     
 
                     o1,o2= self.shelf_coords(th,cx, cy, angle, dist, m)
@@ -711,21 +695,12 @@ class WarehouseExplore(Node):
                     #     c1,c2=int(cx+dist*n*np.cos(angle)), int(cy+dist*n*np.sin(angle))	
                     
                     c1,c2= self.qr_coords(th,cx, cy, angle, dist, n)
-                    q=False
 
-                    for i in detected_com:
-                        self.logger.info(f"distane_calc: {euclidean((cx,height-cy),i)}")
-                        if euclidean((cx,height-cy),i)<30:
-                            q=True
-                            break
-                    if not q:
-                        shelves.append(shelf((cx,height-cy),(c1,height-c2),(o1,height-o2),0,0))
+                    shelves.append(shelf((cx,height-cy),(c1,height-c2),(o1,height-o2),(angle*np.pi/180),(ortho*np.pi/180)))
                     self.logger.info(f"complete shelf added {len(shelves)}")
                     continue
-
             self.logger.info("perfect shape not found")
-        for s in shelves:
-            self.logger.info("shelfs coords: {s.com}")
+
 
     def find_shelves(self, img,th, height, width, map_info):
         self.full_map_explored_count += 1
@@ -753,23 +728,23 @@ class WarehouseExplore(Node):
             shelf.com = self.get_world_coord_from_map_coord(shelf.com[0],shelf.com[1], map_info)
             
             if shelf.com != (self.current_com_x,self.current_com_y): #for skiping current shelf from checking
-                # dx = (shelf.com[0] - self.current_com_x)
-                # dy = (shelf.com[1] - self.current_com_y)
-                # # self.logger.info(f"dx: {dx}, dy: {dy}")
-                # dirn = np.arctan2(dy, dx)
-                # if dirn < 0:
-                #     dirn += 2 * np.pi
-                # self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
-                # qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
-                # error_rad = np.deg2rad(error)
+                dx = (shelf.com[0] - self.current_com_x)
+                dy = (shelf.com[1] - self.current_com_y)
+                # self.logger.info(f"dx: {dx}, dy: {dy}")
+                dirn = np.arctan2(dy, dx)
+                if dirn < 0:
+                    dirn += 2 * np.pi
+                self.logger.info(f"real --> {dirn*180/np.pi} qr_angle--> {self.qr_angle}")
+                qr_angle_rad = np.deg2rad(self.qr_angle)  # Convert to radians
+                error_rad = np.deg2rad(error)
 
-                # dirn_norm = dirn % (2 * np.pi)
-                # qr_angle_norm = qr_angle_rad % (2 * np.pi)
+                dirn_norm = dirn % (2 * np.pi)
+                qr_angle_norm = qr_angle_rad % (2 * np.pi)
 
-                # angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
+                angle_diff = (dirn_norm - qr_angle_norm + np.pi) % (2 * np.pi) - np.pi
 
-                # if abs(angle_diff) < error_rad:
-                shelf_index.append(counter)
+                if abs(angle_diff) < error_rad:
+                    shelf_index.append(counter)
                     
             counter+=1
         
@@ -860,7 +835,7 @@ class WarehouseExplore(Node):
         else:
             # self.logger.info(f"Found shelves: {shelf_index}")
             self.reach_shelves(shelf_index, map_info, map_array, img)
-        self.logger.info(f"{sequence}")
+        
 
     def get_frontiers_for_space_exploration(self, map_array):
         """Identifies frontiers for space exploration.
@@ -1006,105 +981,57 @@ class WarehouseExplore(Node):
         Returns:
             None
         """
-
-        if self.qr_done == True or self.goal_completed == False or self.explore_toggle == True:
-            
-            return
-
-        self.logger.info("pub")
-
         count = 0
         for object in message.object_count:
             count += object
 
-        if int(self.qr_code_str.split("_")[0]) != self.obj_iter:
-            sequence[int(self.qr_code_str.split("_")[0])]= sequence_publisher(count, message.object_name, message.qr_decoded)
-            
+        distance = euclidean(self.buggy_center, self.prev_sit)
+
+        # Check if moved significantly to reset counter
+        if distance > MOVE_RESET_DISTANCE:
+            self.halt_counter = 0
+            self.last_moved_time = self.get_clock().now().nanoseconds
+
+        # Increment counter if very small movement
+        if distance < STOP_DISTANCE_THRESHOLD:
+            self.halt_counter += 1
         else:
-            shelf_data_message = WarehouseShelf()
+            self.halt_counter = 0
 
-            shelf_data_message.object_name = message.object_name
-            shelf_data_message.object_count = message.object_count
-            shelf_data_message.qr_decoded = self.qr_code_str
+        # Robot must be still for required frames AND for at least 1 second
+        elapsed_sec = (self.get_clock().now().nanoseconds - self.last_moved_time) / 1e9
+        self.halt = (self.halt_counter >= STOP_FRAMES_REQUIRED and elapsed_sec > 0.25)
+
+        self.prev_sit = self.buggy_center
+
+        # self.logger.info(
+        #     f"halt: {self.halt}"
+        # )
+
+        if self.qr_code_str.split("_")[0] != "Empty":
+            if 7 > count > 3 and int(self.qr_code_str.split("_")[0]) == (self.shelf_table_no + 1) and self.halt:
+                self.miss_check = True
+                # for i in range(10):
+                self.logger.info(f"hi...")
+                # self.logger.info(f"Detected {count} objects on shelf.")
+
+                self.shelf_objects_curr = message
 
 
-            self.publisher_shelf_data.publish(shelf_data_message)
-            self.obj_iter = int(self.qr_code_str.split("_")[0] ) + 1
-
-            while sequence.get(self.obj_iter) != None:
-
-                # Get the sequence item instance for easier reading
-                current_item = sequence[self.obj_iter] 
-                
                 shelf_data_message = WarehouseShelf()
 
-                # Corrected lines: Use 'current_item' (the instance)
-                shelf_data_message.object_name = [current_item.name]
-                shelf_data_message.object_count = [current_item.count]
-                shelf_data_message.qr_decoded = current_item.qr
-                
-                # Original lines for comparison (if you don't use the 'current_item' variable):
-                # shelf_data_message.object_name = sequence[self.obj_iter].name
-                # shelf_data_message.object_count = sequence[self.obj_iter].count # <-- The necessary change!
-                # shelf_data_message.qr_decoded = sequence[self.obj_iter].qr
+                shelf_data_message.object_name = message.object_name
+                shelf_data_message.object_count = message.object_count
+                shelf_data_message.qr_decoded = self.qr_code_str
+
 
                 self.publisher_shelf_data.publish(shelf_data_message)
-                # self.obj_iter += 1 # A cleaner way to increment the integer index
-                # Assuming self.obj_iter is an integer, you can simplify the update: 
-                self.obj_iter = int(self.qr_code_str.split("_")[0]) + 1 
-                # If the goal is to check subsequent keys, simpler incrementing is usually better.
-
-        # count = 0
-        # for object in message.object_count:
-        #     count += object
-
-        # distance = euclidean(self.buggy_center, self.prev_sit)
-
-        # # Check if moved significantly to reset counter
-        # if distance > MOVE_RESET_DISTANCE:
-        #     self.halt_counter = 0
-        #     self.last_moved_time = self.get_clock().now().nanoseconds
-
-        # # Increment counter if very small movement
-        # if distance < STOP_DISTANCE_THRESHOLD:
-        #     self.halt_counter += 1
-        # else:
-        #     self.halt_counter = 0
-
-        # # Robot must be still for required frames AND for at least 1 second
-        # elapsed_sec = (self.get_clock().now().nanoseconds - self.last_moved_time) / 1e9
-        # self.halt = (self.halt_counter >= STOP_FRAMES_REQUIRED and elapsed_sec > 0.25)
-
-        # self.prev_sit = self.buggy_center
-
-        # # self.logger.info(
-        # #     f"halt: {self.halt}"
-        # # )
-
-        # if self.qr_code_str.split("_")[0] != "Empty":
-        #     if 7 > count > 3 and int(self.qr_code_str.split("_")[0]) == (self.shelf_table_no + 1) and self.halt:
-        #         self.miss_check = True
-        #         # for i in range(10):
-        #         self.logger.info(f"hi...")
-        #         # self.logger.info(f"Detected {count} objects on shelf.")
-
-        #         self.shelf_objects_curr = message
-
-
-        #         shelf_data_message = WarehouseShelf()
-
-        #         shelf_data_message.object_name = message.object_name
-        #         shelf_data_message.object_count = message.object_count
-        #         shelf_data_message.qr_decoded = self.qr_code_str
-
-
-        #         self.publisher_shelf_data.publish(shelf_data_message)
-        #         # self.obj_counter += 1
-        #         if count > 5:
-        #             self.shelf_table_no = int(self.qr_code_str.split("_")[0])
-        #     if not self.halt and self.miss_check:
-        #         self.shelf_table_no = int(self.qr_code_str.split("_")[0])
-        #         self.miss_check = False
+                # self.obj_counter += 1
+                if count > 5:
+                    self.shelf_table_no = int(self.qr_code_str.split("_")[0])
+            if not self.halt and self.miss_check:
+                self.shelf_table_no = int(self.qr_code_str.split("_")[0])
+                self.miss_check = False
 
 
             # if 7 > count > 5 and int(self.qr_code_str.split("_")[0]) == self.shelf_table_no + 1 and self.goal_completed:
@@ -1252,7 +1179,7 @@ class WarehouseExplore(Node):
         Callback function to receive feedback from the navigation action.
 
         Args:
-            msg (nav2_msgs.action.NavigateToPose.Feedback): T+he feedback message.
+            msg (nav2_msgs.action.NavigateToPose.Feedback): The feedback message.
         """
         distance_remaining = msg.feedback.distance_remaining
         number_of_recoveries = msg.feedback.number_of_recoveries
@@ -1411,3 +1338,6 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+
+    
