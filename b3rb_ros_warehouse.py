@@ -1847,11 +1847,11 @@ class WarehouseExplore(Node):
             
         else:	# qr detected
             
-            no_qr = int(self.qr_random.split("_")[0])
-            self.logger.info(f"qr_no: {no_qr}")
+            # no_qr = int(self.qr_random.split("_")[0])
+            # self.logger.info(f"qr_no: {no_qr}")
 
                 
-            self.prev_no_qr = no_qr
+            # self.prev_no_qr = no_qr
             
             # self.logger.info(f"counter obj: {counter}")
             #the robot reaches the qr of that shelf refered in the if block comment
@@ -1866,12 +1866,14 @@ class WarehouseExplore(Node):
 
             self.current_com_x,self.current_com_y=shelves[counter].com
             self.node_x, self.node_y = self.get_map_coord_from_world_coord(self.current_com_x,self.current_com_y, map_info)
-            self.logger.info(f"reached shelf no: {no_qr} at com: {self.current_com_x,self.current_com_y} ")
+            # self.logger.info(f"reached shelf no: {no_qr} at com: {self.current_com_x,self.current_com_y} ")
 #due to this counter value will update in the next itteration to find index of next shelf
             self.qr_angle=float(self.qr_random.split("_")[1])+math.degrees(self.robot_initial_angle)
+            self.robot_initial_angle+=math.radians(float(self.qr_random.split("_")[1]))
+            self.robot_initial_angle%=(2*math.pi)
             self.logger.warn(f"qr qr {self.qr_angle}")
-            
-            
+            self.logger.info(f"robot_initial_angle updated: {self.robot_initial_angle}")
+
             # self.logger.info(f"next shelf com-->: {shelves[counter].com}")
             detected_com.append(self.get_map_coord_from_world_coord(shelves[counter].com[0], shelves[counter].com[1], map_info))
             
@@ -2416,12 +2418,14 @@ class WarehouseExplore(Node):
         Returns:
             None
         """
+        if self.qr_done == False or self.goal_completed == False or self.explore_toggle == True:
+            return
         np_arr = np.frombuffer(message.data, np.uint8)
         image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         for barcode in decode(image):
             self.qr_code_str = barcode.data.decode('utf-8')
-            if self.qr_code_str.split("_")[0] != "Empty":
-                self.qr_array[int(self.qr_code_str.split("_")[0]) - 1] = self.qr_code_str
+            #if self.qr_code_str.split("_")[0] != "Empty":
+            #    self.qr_array[int(self.qr_code_str.split("_")[0]) - 1] = self.qr_code_str
             self.logger.info(f"QR code data: {self.qr_code_str}")
             # pts = np.array([barcode.polygon],np.int32)
             # pts.reshape((-1,1,2))
