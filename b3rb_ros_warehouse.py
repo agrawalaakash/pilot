@@ -1735,6 +1735,7 @@ class WarehouseExplore(Node):
         self.stop_count=0
         self.distant_pre_pos=[0,0]
         self.miss_check = False
+        self.wait = False
 
         self.halt = False
         self.prev_sit = [0.0, 0.0]
@@ -1887,9 +1888,11 @@ class WarehouseExplore(Node):
         if self.goal_status == 'accepted':
             if not self.qr_done:
                 self.qr_done = True
+                # self.wait = True
             else:
                 self.qr_done = False
                 self.once = True
+                self.wait = True
 
 
     def explore(self, img,map_array, map_info):
@@ -2263,7 +2266,7 @@ class WarehouseExplore(Node):
         # return
         self.global_map_curr = message
 
-        if not self.goal_completed:
+        if not self.goal_completed or self.wait:
             return
         # if self.qr_array[self.prev_no_qr-1] != '0':
         #     self.qr_code_str = self.qr_array[self.prev_no_qr-1]
@@ -2278,19 +2281,19 @@ class WarehouseExplore(Node):
         # resolution, origin_x, origin_y = self._get_map_conversion_info(map_info)
         # self.logger.info(f"res:{resolution}, ox: {origin_x}, oy: {origin_y}")
 
-        if euclidean(self.buggy_center,self.prev_pos)<0.1:
-            self.stop_count+=1
-        else:
-            self.stop_count=0
-            # if self.goal_completed:
-            self.distant_pre_pos= self.prev_pos
-        if self.stop_count>5:
-            # self.logger.info("stuck now moving to a new random location")
-            self.stop_count=0
-            goal = self.create_goal_from_world_coord(self.distant_pre_pos[0],self.distant_pre_pos[1])
-            self.send_goal_from_world_pose(goal)
-        self.logger.info(f"stop count -->{self.stop_count}")
-        self.prev_pos = self.buggy_center
+        # if euclidean(self.buggy_center,self.prev_pos)<0.1:
+        #     self.stop_count+=1
+        # else:
+        #     self.stop_count=0
+        #     # if self.goal_completed:
+        #     self.distant_pre_pos= self.prev_pos
+        # if self.stop_count>5:
+        #     # self.logger.info("stuck now moving to a new random location")
+        #     self.stop_count=0
+        #     goal = self.create_goal_from_world_coord(self.distant_pre_pos[0],self.distant_pre_pos[1])
+        #     self.send_goal_from_world_pose(goal)
+        # self.logger.info(f"stop count -->{self.stop_count}")
+        # self.prev_pos = self.buggy_center
 
         img = np.array(self.global_map_curr.data).reshape((height, width))
         img = img.astype(np.int16)
@@ -2549,9 +2552,14 @@ class WarehouseExplore(Node):
             return
 
         # Check for valid object count, exit if data is bad
-        if not (7 > count > 2):
+        self.logger.info(f"Object count received: {count}")
+        if not (7 > count > -1):
             self.logger.info("Invalid object count, skipping message.")
             return
+        
+        if count > 4:
+            self.wait = False
+            self.logger.info("Sufficient objects detected, resuming operations.")
 
         # --- New State-Based Logic ---
 
